@@ -1,10 +1,13 @@
 # 🗂️ AI Job Application Tracker
 
 > A full-stack AI-powered job application tracker — track every application, analyze your resume against any job description, and get back a verdict with missing skills, suggested keywords, and interview prep topics.
+
 ![GitHub Actions](https://github.com/dineshkumarturpti/ai-job-application-tracker/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-orange)
+
+---
 
 ## ✨ Features
 
