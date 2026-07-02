@@ -2,10 +2,12 @@
 
 > A full-stack AI-powered job application tracker — track every application, analyze your resume against any job description, and get back a verdict with missing skills, suggested keywords, and interview prep topics.
 
-![GitHub Actions](https://github.com/dineshkumarturpti/ai-job-application-tracker/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/Python-3.11+-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
-![OpenAI](https://img.shields.io/badge/OpenAI-API-orange)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-API-412991?style=flat&logo=openai&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=flat&logo=postgresql&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=flat&logo=jsonwebtokens&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat)
 
 ---
 
