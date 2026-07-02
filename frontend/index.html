@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ledger — Job Search Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#2B3A32;
+  --bg-soft:#33453B;
+  --paper:#ECE0C2;
+  --paper-soft:#E2D4AE;
+  --ink:#1F2A22;
+  --ink-soft:#52624F;
+  --on-dark:#ECE0C2;
+  --on-dark-soft:#A7AE96;
+  --brass:#C9A227;
+  --brass-deep:#9C7D1B;
+  --amber:#B97D2B;
+  --blue:#3E6E8E;
+  --green:#4F8F6B;
+  --red:#A8362E;
+  --line: rgba(236,224,194,0.18);
+  --shadow: 0 6px 16px rgba(0,0,0,0.28);
+  --radius: 3px;
+  --display: 'Special Elite', 'Courier New', monospace;
+  --body: 'IBM Plex Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--on-dark);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(255,255,255,0.03), transparent 40%),
+    radial-gradient(circle at 80% 90%, rgba(255,255,255,0.03), transparent 40%);
+  pointer-events:none;
+}
+button{font-family:inherit; cursor:pointer;}
+input,textarea,select{font-family:inherit;}
+a{color:var(--brass);}
+
+:focus-visible{
+  outline:2px solid var(--brass);
+  outline-offset:2px;
+}
+
+.wrap{max-width:1180px; margin:0 auto; padding:28px 20px 80px;}
+
+/* ---------- Header ---------- */
+header.top{
+  display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end;
+  gap:18px; margin-bottom:22px; padding-bottom:18px;
+  border-bottom:1px solid var(--line);
+}
+.brand-eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--brass); margin:0 0 6px;
+}
+h1.brand{
+  font-family:var(--display); font-size:32px; margin:0; line-height:1.15;
+  color:var(--on-dark);
+}
+.brand small{display:block; font-family:var(--body); font-size:13px; color:var(--on-dark-soft); font-weight:400; margin-top:4px;}
+
+.header-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+
+.btn{
+  border:1px solid var(--line); background:transparent; color:var(--on-dark);
+  padding:9px 16px; border-radius:var(--radius); font-size:13px; font-weight:600;
+  display:inline-flex; align-items:center; gap:6px; transition:background .15s,border-color .15s,transform .1s;
+}
+.btn:hover{background:rgba(236,224,194,0.06); border-color:rgba(236,224,194,0.35);}
+.btn:active{transform:translateY(1px);}
+.btn-brass{
+  background:var(--brass); border-color:var(--brass); color:#241D04;
+}
+.btn-brass:hover{background:#DCB531; border-color:#DCB531;}
+.btn-ghost{border-color:transparent; color:var(--on-dark-soft); padding:9px 10px;}
+.btn-ghost:hover{color:var(--on-dark); background:rgba(236,224,194,0.06);}
+.btn-danger{color:var(--red); border-color:rgba(168,54,46,0.4);}
+.btn-danger:hover{background:rgba(168,54,46,0.12);}
+.btn svg{width:14px; height:14px; flex:none;}
+
+/* ---------- Ledger counters ---------- */
+.ledger{
+  display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px;
+}
+.tally{
+  background:var(--bg-soft); border:1px solid var(--line); border-radius:var(--radius);
+  padding:10px 16px; min-width:84px; text-align:center;
+}
+.tally .num{font-family:var(--mono); font-size:24px; font-weight:600; color:var(--on-dark); line-height:1;}
+.tally .lbl{font-family:var(--mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--on-dark-soft); margin-top:5px; display:block;}
+.tally.c-saved .num{color:var(--brass);}
+.tally.c-applied .num{color:var(--amber);}
+.tally.c-interview .num{color:var(--blue);}
+.tally.c-offer .num{color:var(--green);}
+.tally.c-rejected .num{color:var(--red);}
+
+/* ---------- Tabs ---------- */
+.tabs{display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:22px;}
+.tab{
+  background:none; border:none; color:var(--on-dark-soft); font-size:13px; font-weight:600;
+  padding:10px 4px; margin-right:22px; border-bottom:2px solid transparent; letter-spacing:.3px;
+}
+.tab.active{color:var(--on-dark); border-bottom-color:var(--brass);}
+.tab:hover{color:var(--on-dark);}
+
+.view{display:none;}
+.view.active{display:block;}
+
+/* ---------- Stamp badge ---------- */
+.stamp{
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:var(--display); font-size:11px; letter-spacing:1px; text-transform:uppercase;
+  border:2px solid currentColor; border-radius:2px; padding:2px 8px;
+  transform:rotate(-3deg); white-space:nowrap;
+}
+.stamp.s-saved{color:var(--brass-deep); background:rgba(201,162,39,0.1);}
+.stamp.s-applied{color:var(--amber); background:rgba(185,125,43,0.1);}
+.stamp.s-interview{color:var(--blue); background:rgba(62,110,142,0.1);}
+.stamp.s-offer{color:var(--green); background:rgba(79,143,107,0.1);}
+.stamp.s-rejected{color:var(--red); background:rgba(168,54,46,0.1);}
+
+@media (prefers-reduced-motion: no-preference){
+  .stamp.hit{animation: stampHit .32s ease-out;}
+}
+@keyframes stampHit{
+  0%{transform:scale(2.1) rotate(-3deg); opacity:0;}
+  55%{transform:scale(0.92) rotate(-3deg); opacity:1;}
+  100%{transform:scale(1) rotate(-3deg);}
+}
+
+/* ---------- Board ---------- */
+.board{display:grid; grid-template-columns:repeat(5,1fr); gap:14px;}
+.column{
+  background:var(--bg-soft); border:1px solid var(--line); border-radius:6px;
+  padding:12px; min-height:160px; display:flex; flex-direction:column;
+}
+.column.dragover{outline:2px dashed var(--brass); outline-offset:-4px;}
+.col-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+.col-head h3{font-family:var(--display); font-size:13px; letter-spacing:.5px; margin:0; text-transform:uppercase;}
+.col-count{font-family:var(--mono); font-size:12px; color:var(--on-dark-soft); background:rgba(236,224,194,0.08); border-radius:10px; padding:1px 8px;}
+.col-saved h3{color:var(--brass);}
+.col-applied h3{color:var(--amber);}
+.col-interview h3{color:var(--blue);}
+.col-offer h3{color:var(--green);}
+.col-rejected h3{color:var(--red);}
+
+.card-list{display:flex; flex-direction:column; gap:9px; flex:1;}
+.card{
+  background:var(--paper); color:var(--ink); border-radius:2px; padding:11px 12px;
+  box-shadow:var(--shadow); cursor:grab; position:relative;
+  border-left:4px solid var(--brass);
+}
+.card:nth-child(2n){transform:rotate(-0.3deg);}
+.card:nth-child(2n+1){transform:rotate(0.3deg);}
+.card.dragging{opacity:.4;}
+.card .co{font-weight:700; font-size:14px; margin:0 0 2px;}
+.card .role{font-size:12.5px; color:var(--ink-soft); margin:0 0 8px;}
+.card .meta{font-family:var(--mono); font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between; align-items:center;}
+.card .meta .due.overdue{color:var(--red); font-weight:600;}
+
+.empty-col{font-size:12px; color:var(--on-dark-soft); padding:20px 4px; text-align:center; border:1px dashed var(--line); border-radius:4px;}
+
+@media (max-width: 880px){
+  .board{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px;}
+  .column{min-width:240px; flex:0 0 78%; scroll-snap-align:start;}
+}
+
+/* ---------- Table ---------- */
+.filters{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;}
+.field-inline{display:flex; flex-direction:column; gap:4px;}
+.field-inline label{font-size:11px; color:var(--on-dark-soft); letter-spacing:.5px; text-transform:uppercase;}
+select, .input{
+  background:var(--bg-soft); border:1px solid var(--line); color:var(--on-dark);
+  padding:8px 10px; border-radius:var(--radius); font-size:13px; min-width:160px;
+}
+select:focus,.input:focus{border-color:var(--brass);}
+
+.table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:6px;}
+table{width:100%; border-collapse:collapse; min-width:760px;}
+th{
+  text-align:left; font-family:var(--mono); font-size:11px; letter-spacing:1px; text-transform:uppercase;
+  color:var(--on-dark-soft); padding:11px 14px; border-bottom:1px solid var(--line); background:var(--bg-soft);
+}
+td{padding:11px 14px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle;}
+tbody tr:hover{background:rgba(236,224,194,0.04);}
+td.actions{display:flex; gap:6px;}
+.icon-btn{
+  background:none; border:1px solid var(--line); border-radius:4px; padding:5px 7px;
+  color:var(--on-dark-soft); display:inline-flex;
+}
+.icon-btn:hover{color:var(--on-dark); border-color:rgba(236,224,194,0.4);}
+.icon-btn svg{width:14px; height:14px;}
+
+/* ---------- Empty state ---------- */
+.empty-state{
+  text-align:center; padding:60px 20px; border:1px dashed var(--line); border-radius:8px;
+}
+.empty-state h3{font-family:var(--display); font-size:18px; margin:0 0 8px;}
+.empty-state p{color:var(--on-dark-soft); font-size:13.5px; margin:0 0 18px;}
+
+/* ---------- AI tab ---------- */
+.ai-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+@media (max-width:880px){.ai-grid{grid-template-columns:1fr;}}
+.panel{background:var(--bg-soft); border:1px solid var(--line); border-radius:8px; padding:18px;}
+.panel h2{font-family:var(--display); font-size:16px; margin:0 0 4px;}
+.panel .sub{font-size:12.5px; color:var(--on-dark-soft); margin:0 0 14px;}
+.panel label{display:block; font-size:11px; letter-spacing:.5px; text-transform:uppercase; color:var(--on-dark-soft); margin-bottom:6px;}
+textarea{
+  width:100%; background:var(--bg); border:1px solid var(--line); color:var(--on-dark);
+  border-radius:var(--radius); padding:10px; font-size:13px; font-family:var(--body); resize:vertical;
+  min-height:140px;
+}
+textarea:focus{border-color:var(--brass);}
+.char-count{font-family:var(--mono); font-size:10.5px; color:var(--on-dark-soft); text-align:right; margin-top:4px;}
+
+.report{margin-top:18px;}
+.verdict-stamp{
+  font-family:var(--display); font-size:20px; letter-spacing:1.5px; text-transform:uppercase;
+  border:3px solid currentColor; border-radius:4px; padding:8px 18px; display:inline-block;
+  transform:rotate(-4deg); margin-bottom:14px;
+}
+.v-strong{color:var(--green);} .v-partial{color:var(--amber);} .v-weak{color:var(--red);}
+.report-summary{font-size:13.5px; color:var(--on-dark); margin:0 0 16px; line-height:1.5;}
+.chip-group{margin-bottom:16px;}
+.chip-group h4{font-family:var(--mono); font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--on-dark-soft); margin:0 0 8px;}
+.chips{display:flex; flex-wrap:wrap; gap:6px;}
+.chip{
+  background:rgba(236,224,194,0.08); border:1px solid var(--line); border-radius:14px;
+  padding:4px 11px; font-size:12px; color:var(--on-dark);
+}
+.ai-error{color:var(--red); font-size:13px; background:rgba(168,54,46,0.1); border:1px solid rgba(168,54,46,0.3); padding:10px 12px; border-radius:4px; margin-top:12px;}
+
+.spinner{
+  width:16px; height:16px; border:2px solid rgba(236,224,194,0.25); border-top-color:var(--on-dark);
+  border-radius:50%; display:inline-block; animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ---------- Modal ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(15,20,17,0.65); display:none;
+  align-items:center; justify-content:center; padding:20px; z-index:50;
+}
+.overlay.open{display:flex;}
+.modal{
+  background:var(--paper); color:var(--ink); width:100%; max-width:560px; max-height:88vh;
+  overflow-y:auto; border-radius:6px; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.5);
+}
+.modal h2{font-family:var(--display); font-size:19px; margin:0 0 18px;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block; font-size:11px; letter-spacing:.5px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px;}
+.form-row .input, .form-row select, .form-row textarea{
+  background:#FBF6E8; border:1px solid rgba(31,42,34,0.2); color:var(--ink); width:100%; min-width:0;
+}
+.form-row textarea{min-height:80px;}
+.form-2col{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+.modal-actions{display:flex; justify-content:space-between; align-items:center; margin-top:18px; gap:10px;}
+.modal-actions .right{display:flex; gap:8px;}
+.last-report{
+  margin-top:4px; margin-bottom:16px; padding:10px 12px; border:1px dashed rgba(31,42,34,0.25); border-radius:4px;
+}
+.last-report .lr-head{display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
+
+footer.note{text-align:center; color:var(--on-dark-soft); font-size:12px; margin-top:50px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="brand-eyebrow">Job search ledger</p>
+      <h1 class="brand">The Ledger
+        <small>Every application, filed and stamped.</small>
+      </h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="btn-reset" title="Clear all data">Clear all data</button>
+      <button class="btn btn-brass" id="btn-add">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Add application
+      </button>
+    </div>
+  </header>
+
+  <div class="ledger" id="ledger"></div>
+
+  <nav class="tabs">
+    <button class="tab active" data-view="board">Board</button>
+    <button class="tab" data-view="table">Table</button>
+    <button class="tab" data-view="ai">AI case file</button>
+  </nav>
+
+  <!-- BOARD -->
+  <section class="view active" id="view-board">
+    <div class="board" id="board"></div>
+  </section>
+
+  <!-- TABLE -->
+  <section class="view" id="view-table">
+    <div class="filters">
+      <div class="field-inline">
+        <label for="f-search">Search</label>
+        <input class="input" id="f-search" placeholder="Company or role">
+      </div>
+      <div class="field-inline">
+        <label for="f-status">Status</label>
+        <select id="f-status">
+          <option value="">All statuses</option>
+          <option value="saved">Saved</option>
+          <option value="applied">Applied</option>
+          <option value="interview">Interview</option>
+          <option value="offer">Offer</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="field-inline">
+        <label for="f-sort">Sort by</label>
+        <select id="f-sort">
+          <option value="created-desc">Newest added</option>
+          <option value="deadline-asc">Deadline, soonest</option>
+          <option value="company-asc">Company, A–Z</option>
+        </select>
+      </div>
+    </div>
+    <div id="table-host"></div>
+  </section>
+
+  <!-- AI CASE FILE -->
+  <section class="view" id="view-ai">
+    <div class="ai-grid">
+      <div class="panel">
+        <h2>Case file</h2>
+        <p class="sub">Paste your resume and the job description. Claude compares the two and reports back.</p>
+
+        <div class="form-row" style="margin-bottom:16px;">
+          <label for="ai-link">Link to an application (optional)</label>
+          <select id="ai-link" class="input" style="width:100%;"></select>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label for="ai-resume">Your resume</label>
+          <textarea id="ai-resume" placeholder="Paste the resume text you're using for this application..."></textarea>
+          <div class="char-count" id="resume-count">0 characters</div>
+        </div>
+
+        <div style="margin-bottom:6px;">
+          <label for="ai-jd">Job description</label>
+          <textarea id="ai-jd" placeholder="Paste the job description..."></textarea>
+          <div class="char-count" id="jd-count">0 characters</div>
+        </div>
+
+        <button class="btn btn-brass" id="btn-analyze" style="margin-top:12px;">Run analysis</button>
+        <span id="ai-loading" style="display:none; margin-left:10px;"><span class="spinner"></span> <span style="font-size:12.5px;color:var(--on-dark-soft);">Reading both documents...</span></span>
+        <div id="ai-error-host"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Field report</h2>
+        <p class="sub">Your verdict, gaps, and prep topics will appear here.</p>
+        <div id="report-host">
+          <div class="empty-state" style="padding:40px 10px;">
+            <h3>No report yet</h3>
+            <p>Run an analysis to see how the resume stacks up.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="note">Saved automatically to your account — only you can see it.</footer>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">Add application</h2>
+    <input type="hidden" id="f-id">
+
+    <div id="last-report-host"></div>
+
+    <div class="form-2col">
+      <div class="form-row">
+        <label for="f-company">Company *</label>
+        <input class="input" id="f-company" required>
+      </div>
+      <div class="form-row">
+        <label for="f-role">Role *</label>
+        <input class="input" id="f-role" required>
+      </div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row">
+        <label for="f-statussel">Status</label>
+        <select id="f-statussel">
+          <option value="saved">Saved</option>
+          <option value="applied">Applied</option>
+          <option value="interview">Interview</option>
+          <option value="offer">Offer</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="f-deadline">Deadline</label>
+        <input class="input" type="date" id="f-deadline">
+      </div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row">
+        <label for="f-link">Job link</label>
+        <input class="input" id="f-link" placeholder="https://...">
+      </div>
+      <div class="form-row">
+        <label for="f-resumever">Resume version</label>
+        <input class="input" id="f-resumever" placeholder="e.g. resume_v3_backend.pdf">
+      </div>
+    </div>
+    <div class="form-row">
+      <label for="f-jd">Job description</label>
+      <textarea id="f-jd" placeholder="Paste the job posting here so you can analyze it later"></textarea>
+    </div>
+    <div class="form-row">
+      <label for="f-notes">Notes</label>
+      <textarea id="f-notes" placeholder="Recruiter contact, interview impressions, follow-ups..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="btn-delete" style="display:none;">Delete application</button>
+      <div class="right">
+        <button class="btn" id="btn-cancel">Cancel</button>
+        <button class="btn btn-brass" id="btn-save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STATUSES = [
+    {key:'saved', label:'Saved', cls:'saved'},
+    {key:'applied', label:'Applied', cls:'applied'},
+    {key:'interview', label:'Interview', cls:'interview'},
+    {key:'offer', label:'Offer', cls:'offer'},
+    {key:'rejected', label:'Rejected', cls:'rejected'},
+  ];
+
+  let applications = [];
+  let editingId = null;
+  let dragId = null;
+  let dataLoaded = false;
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  const ICONS = {
+    edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+    link: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
+  };
+
+  /* ---------------- storage ---------------- */
+  async function loadData(){
+    try{
+      const res = await window.storage.get('job_applications', false);
+      applications = res && res.value ? JSON.parse(res.value) : [];
+    }catch(e){
+      applications = [];
+    }
+    try{
+      const res2 = await window.storage.get('resume_text', false);
+      if(res2 && res2.value) $('#ai-resume').value = res2.value;
+    }catch(e){ /* no saved resume yet */ }
+    dataLoaded = true;
+    renderAll();
+  }
+
+  async function persistApplications(){
+    try{
+      await window.storage.set('job_applications', JSON.stringify(applications), false);
+    }catch(e){
+      console.error('Could not save applications', e);
+    }
+  }
+
+  let resumeSaveTimer = null;
+  function scheduleResumeSave(){
+    clearTimeout(resumeSaveTimer);
+    resumeSaveTimer = setTimeout(async () => {
+      try{ await window.storage.set('resume_text', $('#ai-resume').value, false); }catch(e){}
+    }, 600);
+  }
+
+  /* ---------------- helpers ---------------- */
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function esc(s){
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtDate(d){
+    if(!d) return '—';
+    const dt = new Date(d + 'T00:00:00');
+    if(isNaN(dt)) return d;
+    return dt.toLocaleDateString(undefined,{month:'short', day:'numeric'});
+  }
+  function isOverdue(d){
+    if(!d) return false;
+    const today = new Date(); today.setHours(0,0,0,0);
+    return new Date(d+'T00:00:00') < today;
+  }
+  function statusMeta(key){ return STATUSES.find(s=>s.key===key) || STATUSES[0]; }
+
+  /* ---------------- render: counters ---------------- */
+  function renderCounters(){
+    const total = applications.length;
+    const counts = {};
+    STATUSES.forEach(s => counts[s.key] = applications.filter(a=>a.status===s.key).length);
+    let html = `<div class="tally"><span class="num">${total}</span><span class="lbl">Total</span></div>`;
+    STATUSES.forEach(s => {
+      html += `<div class="tally c-${s.cls}"><span class="num">${counts[s.key]}</span><span class="lbl">${s.label}</span></div>`;
+    });
+    $('#ledger').innerHTML = html;
+  }
+
+  /* ---------------- render: board ---------------- */
+  function renderBoard(){
+    const board = $('#board');
+    if(!dataLoaded){
+      board.innerHTML = `<p style="color:var(--on-dark-soft); font-size:13px;">Loading your ledger…</p>`;
+      return;
+    }
+    if(applications.length === 0){
+      board.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+        <h3>No applications filed yet</h3>
+        <p>Add your first one to start the board.</p>
+        <button class="btn btn-brass" onclick="document.getElementById('btn-add').click()">Add application</button>
+      </div>`;
+      return;
+    }
+    board.innerHTML = STATUSES.map(s => {
+      const items = applications.filter(a => a.status === s.key);
+      const cards = items.length ? items.map(cardHtml).join('') : `<div class="empty-col">No cards filed yet</div>`;
+      return `
+        <div class="column col-${s.cls}" data-status="${s.key}">
+          <div class="col-head">
+            <h3>${s.label}</h3>
+            <span class="col-count">${items.length}</span>
+          </div>
+          <div class="card-list" data-status="${s.key}">${cards}</div>
+        </div>`;
+    }).join('');
+
+    attachBoardEvents();
+  }
+
+  function cardHtml(a){
+    const overdueCls = isOverdue(a.deadline) && a.status!=='offer' && a.status!=='rejected' ? 'overdue' : '';
+    return `
+      <div class="card" draggable="true" data-id="${a.id}" tabindex="0">
+        <p class="co">${esc(a.company)}</p>
+        <p class="role">${esc(a.role)}</p>
+        <div class="meta">
+          <span>${esc(a.resumeVersion) || '—'}</span>
+          <span class="due ${overdueCls}">${fmtDate(a.deadline)}</span>
+        </div>
+      </div>`;
+  }
+
+  function attachBoardEvents(){
+    $$('.card').forEach(card => {
+      card.addEventListener('click', () => openModal(card.dataset.id));
+      card.addEventListener('keypress', (e) => { if(e.key === 'Enter') openModal(card.dataset.id); });
+      card.addEventListener('dragstart', (e) => {
+        dragId = card.dataset.id;
+        card.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    });
+    $$('.column').forEach(col => {
+      col.addEventListener('dragover', (e) => { e.preventDefault(); col.classList.add('dragover'); });
+      col.addEventListener('dragleave', () => col.classList.remove('dragover'));
+      col.addEventListener('drop', (e) => {
+        e.preventDefault();
+        col.classList.remove('dragover');
+        if(!dragId) return;
+        const app = applications.find(a => a.id === dragId);
+        if(app && app.status !== col.dataset.status){
+          app.status = col.dataset.status;
+          app.updatedAt = new Date().toISOString();
+          persistApplications();
+          renderAll();
+          requestAnimationFrame(() => {
+            const newCard = document.querySelector(`.card[data-id="${dragId}"]`);
+          });
+        }
+        dragId = null;
+      });
+    });
+  }
+
+  /* ---------------- render: table ---------------- */
+  function renderTable(){
+    const host = $('#table-host');
+    if(!dataLoaded){ host.innerHTML = ''; return; }
+    if(applications.length === 0){
+      host.innerHTML = `<div class="empty-state">
+        <h3>Your ledger is empty</h3>
+        <p>Add your first application to get started.</p>
+        <button class="btn btn-brass" onclick="document.getElementById('btn-add').click()">Add application</button>
+      </div>`;
+      return;
+    }
+
+    const search = $('#f-search').value.trim().toLowerCase();
+    const statusFilter = $('#f-status').value;
+    const sort = $('#f-sort').value;
+
+    let rows = applications.filter(a => {
+      const matchesSearch = !search || a.company.toLowerCase().includes(search) || a.role.toLowerCase().includes(search);
+      const matchesStatus = !statusFilter || a.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+
+    rows.sort((a,b) => {
+      if(sort === 'deadline-asc'){
+        if(!a.deadline) return 1; if(!b.deadline) return -1;
+        return a.deadline.localeCompare(b.deadline);
+      }
+      if(sort === 'company-asc') return a.company.localeCompare(b.company);
+      return (b.createdAt||'').localeCompare(a.createdAt||'');
+    });
+
+    if(rows.length === 0){
+      host.innerHTML = `<div class="empty-state"><h3>No matches</h3><p>Try a different search or filter.</p></div>`;
+      return;
+    }
+
+    host.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Company</th><th>Role</th><th>Status</th><th>Deadline</th><th>Resume</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(a => `
+              <tr>
+                <td>${esc(a.company)}</td>
+                <td>${esc(a.role)}</td>
+                <td><span class="stamp s-${statusMeta(a.status).cls}">${statusMeta(a.status).label}</span></td>
+                <td style="font-family:var(--mono); font-size:12.5px;">${fmtDate(a.deadline)}</td>
+                <td style="font-family:var(--mono); font-size:12px; color:var(--on-dark-soft);">${esc(a.resumeVersion)||'—'}</td>
+                <td class="actions">
+                  <button class="icon-btn" data-edit="${a.id}" aria-label="Edit ${esc(a.company)}">${ICONS.edit}</button>
+                  <button class="icon-btn" data-del="${a.id}" aria-label="Delete ${esc(a.company)}">${ICONS.trash}</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    $$('[data-edit]').forEach(b => b.addEventListener('click', () => openModal(b.dataset.edit)));
+    $$('[data-del]').forEach(b => b.addEventListener('click', () => { if(confirm('Delete this application?')) deleteApplication(b.dataset.del); }));
+  }
+
+  /* ---------------- render: AI link dropdown ---------------- */
+  function renderAiLinkDropdown(){
+    const sel = $('#ai-link');
+    const current = sel.value;
+    sel.innerHTML = `<option value="">— Paste manually —</option>` +
+      applications.map(a => `<option value="${a.id}">${esc(a.company)} — ${esc(a.role)}</option>`).join('');
+    if(current) sel.value = current;
+  }
+
+  function renderAll(){
+    renderCounters();
+    renderBoard();
+    renderTable();
+    renderAiLinkDropdown();
+  }
+
+  /* ---------------- modal ---------------- */
+  function openModal(id){
+    editingId = id || null;
+    const app = id ? applications.find(a => a.id === id) : null;
+    $('#modal-title').textContent = app ? 'Edit application' : 'Add application';
+    $('#f-id').value = app ? app.id : '';
+    $('#f-company').value = app ? app.company : '';
+    $('#f-role').value = app ? app.role : '';
+    $('#f-statussel').value = app ? app.status : 'saved';
+    $('#f-deadline').value = app ? (app.deadline||'') : '';
+    $('#f-link').value = app ? (app.link||'') : '';
+    $('#f-resumever').value = app ? (app.resumeVersion||'') : '';
+    $('#f-jd').value = app ? (app.jobDescription||'') : '';
+    $('#f-notes').value = app ? (app.notes||'') : '';
+    $('#btn-delete').style.display = app ? 'inline-flex' : 'none';
+
+    const lrHost = $('#last-report-host');
+    if(app && app.lastAnalysis){
+      const r = app.lastAnalysis;
+      lrHost.innerHTML = `<div class="last-report">
+        <div class="lr-head"><span>Last AI report — ${new Date(r.ranAt).toLocaleDateString()}</span></div>
+        <span class="stamp s-${r.verdict==='Strong Match'?'offer':r.verdict==='Needs Work'?'rejected':'applied'}" style="font-size:10px;">${esc(r.verdict)}</span>
+        <p style="font-size:12.5px; margin:8px 0 0; color:var(--ink-soft);">${esc(r.summary)}</p>
+      </div>`;
+    } else {
+      lrHost.innerHTML = '';
+    }
+
+    $('#overlay').classList.add('open');
+    $('#f-company').focus();
+  }
+
+  function closeModal(){
+    $('#overlay').classList.remove('open');
+    editingId = null;
+  }
+
+  function saveFromModal(){
+    const company = $('#f-company').value.trim();
+    const role = $('#f-role').value.trim();
+    if(!company || !role){
+      alert('Company and role are required.');
+      return;
+    }
+    const now = new Date().toISOString();
+    if(editingId){
+      const app = applications.find(a => a.id === editingId);
+      Object.assign(app, {
+        company, role,
+        status: $('#f-statussel').value,
+        deadline: $('#f-deadline').value,
+        link: $('#f-link').value.trim(),
+        resumeVersion: $('#f-resumever').value.trim(),
+        jobDescription: $('#f-jd').value,
+        notes: $('#f-notes').value,
+        updatedAt: now,
+      });
+    } else {
+      applications.push({
+        id: uid(),
+        company, role,
+        status: $('#f-statussel').value,
+        deadline: $('#f-deadline').value,
+        link: $('#f-link').value.trim(),
+        resumeVersion: $('#f-resumever').value.trim(),
+        jobDescription: $('#f-jd').value,
+        notes: $('#f-notes').value,
+        lastAnalysis: null,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    persistApplications();
+    renderAll();
+    closeModal();
+  }
+
+  function deleteApplication(id){
+    applications = applications.filter(a => a.id !== id);
+    persistApplications();
+    renderAll();
+    closeModal();
+  }
+
+  /* ---------------- tabs ---------------- */
+  function switchTab(view){
+    $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+    $$('.view').forEach(v => v.classList.remove('active'));
+    $('#view-' + view).classList.add('active');
+  }
+
+  /* ---------------- AI analysis ---------------- */
+  async function runAnalysis(){
+    const resumeText = $('#ai-resume').value.trim();
+    const jdText = $('#ai-jd').value.trim();
+    const errHost = $('#ai-error-host');
+    errHost.innerHTML = '';
+
+    if(!resumeText || !jdText){
+      errHost.innerHTML = `<div class="ai-error">Paste both a resume and a job description before running the analysis.</div>`;
+      return;
+    }
+
+    $('#ai-loading').style.display = 'inline-flex';
+    $('#btn-analyze').disabled = true;
+
+    try{
+      const system = `You are an exacting technical recruiter and resume coach. Compare the resume against the job description and respond with ONLY a single JSON object — no markdown fences, no preamble, no commentary. Match exactly this schema:
+{"verdict": "Strong Match" | "Partial Match" | "Needs Work", "summary": string (max 2 sentences, plain language), "missingSkills": string[] (max 8 short items, skills/requirements in the JD not evidenced in the resume), "suggestedKeywords": string[] (max 10 short items, exact terms from the JD worth mirroring in the resume), "interviewTopics": string[] (max 6 short items, likely interview topics based on the JD)}`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1500,
+          system,
+          messages: [
+            { role: "user", content: `RESUME:\n${resumeText}\n\nJOB DESCRIPTION:\n${jdText}` }
+          ]
+        })
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if(!response.ok){
+        const apiMsg = data && data.error && data.error.message ? data.error.message : ('HTTP ' + response.status);
+        throw new Error(apiMsg);
+      }
+      if(!data) throw new Error('Empty response from the API');
+
+      const textBlock = (data.content || []).find(c => c.type === 'text');
+      if(!textBlock || !textBlock.text) throw new Error('No text content in the response');
+
+      const cleaned = textBlock.text.replace(/```json|```/g, '').trim();
+      let report;
+      try{
+        report = JSON.parse(cleaned);
+      }catch(parseErr){
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        if(match){
+          report = JSON.parse(match[0]);
+        } else {
+          console.error('Raw model output:', textBlock.text);
+          throw new Error('Could not read the report format');
+        }
+      }
+
+      renderReport(report);
+
+      const linkedId = $('#ai-link').value;
+      if(linkedId){
+        const app = applications.find(a => a.id === linkedId);
+        if(app){
+          app.lastAnalysis = { ...report, ranAt: new Date().toISOString() };
+          persistApplications();
+        }
+      }
+    } catch(err){
+      console.error(err);
+      errHost.innerHTML = `<div class="ai-error">Couldn't complete the analysis — ${esc(err.message || 'unknown error')}. Try again.</div>`;
+    } finally {
+      $('#ai-loading').style.display = 'none';
+      $('#btn-analyze').disabled = false;
+    }
+  }
+
+  function renderReport(r){
+    const verdictCls = r.verdict === 'Strong Match' ? 'v-strong' : r.verdict === 'Needs Work' ? 'v-weak' : 'v-partial';
+    const list = (items) => items && items.length
+      ? `<div class="chips">${items.map(i => `<span class="chip">${esc(i)}</span>`).join('')}</div>`
+      : `<p style="font-size:12.5px; color:var(--on-dark-soft); margin:0;">None flagged.</p>`;
+
+    $('#report-host').innerHTML = `
+      <div class="report">
+        <span class="verdict-stamp ${verdictCls}">${esc(r.verdict)}</span>
+        <p class="report-summary">${esc(r.summary)}</p>
+        <div class="chip-group">
+          <h4>Missing skills</h4>
+          ${list(r.missingSkills)}
+        </div>
+        <div class="chip-group">
+          <h4>Suggested keywords</h4>
+          ${list(r.suggestedKeywords)}
+        </div>
+        <div class="chip-group">
+          <h4>Likely interview topics</h4>
+          ${list(r.interviewTopics)}
+        </div>
+      </div>`;
+  }
+
+  /* ---------------- wiring ---------------- */
+  $('#btn-add').addEventListener('click', () => openModal(null));
+  $('#btn-cancel').addEventListener('click', closeModal);
+  $('#btn-save').addEventListener('click', saveFromModal);
+  $('#btn-delete').addEventListener('click', () => { if(editingId && confirm('Delete this application?')) deleteApplication(editingId); });
+  $('#overlay').addEventListener('click', (e) => { if(e.target.id === 'overlay') closeModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && $('#overlay').classList.contains('open')) closeModal(); });
+
+  $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.view)));
+
+  $('#f-search').addEventListener('input', renderTable);
+  $('#f-status').addEventListener('change', renderTable);
+  $('#f-sort').addEventListener('change', renderTable);
+
+  $('#ai-resume').addEventListener('input', () => {
+    $('#resume-count').textContent = $('#ai-resume').value.length + ' characters';
+    scheduleResumeSave();
+  });
+  $('#ai-jd').addEventListener('input', () => {
+    $('#jd-count').textContent = $('#ai-jd').value.length + ' characters';
+  });
+  $('#ai-link').addEventListener('change', () => {
+    const id = $('#ai-link').value;
+    if(id){
+      const app = applications.find(a => a.id === id);
+      if(app) $('#ai-jd').value = app.jobDescription || '';
+      $('#jd-count').textContent = $('#ai-jd').value.length + ' characters';
+    }
+  });
+  $('#btn-analyze').addEventListener('click', runAnalysis);
+
+  $('#btn-reset').addEventListener('click', async () => {
+    if(!confirm('This clears every saved application and your saved resume text. Continue?')) return;
+    applications = [];
+    try{ await window.storage.delete('job_applications', false); }catch(e){}
+    try{ await window.storage.delete('resume_text', false); }catch(e){}
+    $('#ai-resume').value = '';
+    renderAll();
+  });
+
+  loadData();
+})();
+</script>
+</body>
+</html>
