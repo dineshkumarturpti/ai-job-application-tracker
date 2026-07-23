@@ -1,6 +1,7 @@
 # 🗂️ AI Job Application Tracker
 
 > A full-stack AI-powered job application tracker — track every application, analyze your resume against any job description, and get back a verdict with missing skills, suggested keywords, and interview prep topics.
+> **Status:** Core backend (auth, CRUD, AI analysis) is built and tested — 7 pytest cases passing. Redis caching, Docker, and AWS deployment are in progress; the frontend is a vanilla JS prototype not yet wired to this backend.
 
 [![Backend CI](https://github.com/dineshkumarturpti/ai-job-application-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/dineshkumarturpti/ai-job-application-tracker/actions)![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)
