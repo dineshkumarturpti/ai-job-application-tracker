@@ -2,21 +2,11 @@
 
 FastAPI backend for the tracker: JWT authentication, PostgreSQL-backed job
 application records, and a server-side endpoint that calls OpenAI to compare
-a resume against a job description. This is Phase 1 + Phase 2 of the original
-build plan (core tracker + AI features). Redis caching, Docker, CI, and AWS
-deployment are the next phases once this is working for you locally.
+a resume against a job description.
 
-## What's actually been verified
-
-This isn't just generated and handed to you — before delivery:
-- `pip install -r requirements.txt` was run clean
-- The full test suite (7 tests covering auth, CRUD, ownership isolation, and
-  the AI endpoint) was run and passes
-- The app was booted end-to-end and every route was confirmed registered
-
-The one thing **not** verified here is a live PostgreSQL connection (this
-environment couldn't install Postgres), so double-check that step on your
-machine. Everything else — the actual logic — has been exercised.
+Currently implemented: authentication, application CRUD, and the AI resume
+analyzer, all covered by tests. Redis caching, Docker, and deployment are
+still in progress — see the roadmap in the top-level README.
 
 ## Project layout
 
@@ -135,28 +125,16 @@ The OpenAI API key lives only in `.env` on the server — it's never sent to
 or visible from the browser. If you pass `application_id`, the report is
 saved onto that application's record (`last_analysis` field) automatically.
 
-The model used is `gpt-5.4-mini` by default (set via `OPENAI_MODEL` in
-`.env`) — fast and inexpensive, which is the right tradeoff for this kind of
-text-comparison task. Swap in `gpt-5.5` if you want deeper reasoning at
-higher cost.
+The default model is set via `OPENAI_MODEL` in `.env`, so it can be swapped
+for a cheaper or more capable one without touching code.
 
-## Connecting this to a frontend
+## Known limitations
 
-This backend is framework-agnostic on the frontend side — point any client
-at it with `fetch`/`axios`, storing the JWT (e.g. in memory or a cookie) and
-sending it as `Authorization: Bearer <token>` on every `/applications` and
-`/ai` request.
-
-If you want, I can wire this directly into the HTML tracker we already
-built — swapping its `window.storage` calls and direct Claude call for real
-`fetch` calls to this API — just ask.
-
-## Honest notes for your resume
-
-- Don't claim a specific cache-hit percentage (e.g. "75% reduction in API
-  calls") unless you've actually added Redis caching and measured it —
-  that's Phase 3, not built yet.
-- `Base.metadata.create_all()` is used for schema setup, which is fine for a
-  personal project but not how you'd manage schema changes in a real
-  production app — mention Alembic migrations as a "next step" if asked
-  about it in an interview, rather than pretending it's already there.
+- Schema is created via `Base.metadata.create_all()`, which is fine for a
+  single-developer project but doesn't handle schema changes over time.
+  Alembic migrations are the natural next step before this touches a real
+  production database.
+- No role-based access control yet — a logged-in user can only see and edit
+  their own applications, but there's no admin/staff tier.
+- Redis caching for repeated AI analyses, Docker packaging, and a deployed
+  instance are planned next (tracked in the top-level README's roadmap).
